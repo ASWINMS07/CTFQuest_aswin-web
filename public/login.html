@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Secure Rite Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'navy': '#0a0f1c', 'navy-light': '#111827', 'accent': '#dc2626' },
+                    fontFamily: { 'sans': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-navy min-h-screen flex items-center justify-center font-sans">
+    <div class="w-full max-w-md px-6">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-white font-bold text-xl">SR</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Secure Rite Portal</h1>
+            <p class="text-gray-500 mt-2">Sign in to access your dashboard</p>
+        </div>
+
+        <div class="bg-navy-light rounded-xl shadow-2xl p-8 border border-gray-800">
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                    <input type="text" id="username" required
+                        class="w-full px-4 py-3 bg-navy border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-accent"
+                        placeholder="Enter username">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                    <input type="password" id="password" required
+                        class="w-full px-4 py-3 bg-navy border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-accent"
+                        placeholder="Enter password">
+                </div>
+                <button type="submit"
+                    class="w-full bg-accent hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition">Sign
+                    In</button>
+            </form>
+            <div id="errorMsg"
+                class="hidden mt-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm text-center">
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: document.getElementById('username').value, password: document.getElementById('password').value })
+            });
+            const data = await res.json();
+            if (data.success) { window.location.href = data.redirect; }
+            else { document.getElementById('errorMsg').textContent = data.error; document.getElementById('errorMsg').classList.remove('hidden'); }
+        });
+    </script>
+</body>
+
+</html>

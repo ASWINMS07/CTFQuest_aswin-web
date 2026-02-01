@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Secure Rite Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'navy': '#0a0f1c', 'navy-light': '#111827', 'navy-lighter': '#1f2937', 'accent': '#dc2626' },
+                    fontFamily: { 'sans': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-navy text-gray-100 font-sans">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 w-64 bg-navy-light border-r border-gray-800">
+        <div class="h-16 flex items-center px-6 border-b border-gray-800">
+            <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center mr-2">
+                <span class="text-white font-bold text-sm">SR</span>
+            </div>
+            <span class="font-bold text-lg text-white">Secure Rite</span>
+        </div>
+        <nav class="p-4 space-y-2">
+            <a href="#"
+                class="flex items-center px-4 py-3 bg-accent/10 text-accent rounded-lg"><span>Dashboard</span></a>
+            <a href="/preview.html"
+                class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 rounded-lg"><span>Beta
+                    Preview</span></a>
+            <a href="/logs.html"
+                class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 rounded-lg"><span>Access
+                    Logs</span></a>
+            <a href="/settings.html"
+                class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 rounded-lg"><span>Settings</span></a>
+            <div id="adminNav" class="hidden pt-4 border-t border-gray-800 mt-4">
+                <p class="text-xs text-gray-500 uppercase px-4 mb-2">Admin</p>
+                <button id="navExportBtn"
+                    class="w-full flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 rounded-lg text-left"><span>Export
+                        Keys</span></button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="ml-64 min-h-screen">
+        <header class="h-16 bg-navy-light border-b border-gray-800 flex items-center justify-between px-6">
+            <h1 class="text-xl font-semibold text-white">System Overview</h1>
+            <div class="flex items-center space-x-4">
+                <span id="userBadge" class="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300"></span>
+                <div class="w-8 h-8 bg-gray-700 rounded-full"></div>
+            </div>
+        </header>
+
+        <main class="p-6">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-navy-light rounded-xl p-6 border border-gray-800">
+                    <p class="text-gray-500 text-sm">Active Sessions</p>
+                    <p class="text-2xl font-bold text-white mt-1">4,294</p>
+                </div>
+                <div class="bg-navy-light rounded-xl p-6 border border-gray-800">
+                    <p class="text-gray-500 text-sm">System Uptime</p>
+                    <p class="text-2xl font-bold text-white mt-1">99.97%</p>
+                </div>
+                <div class="bg-navy-light rounded-xl p-6 border border-gray-800">
+                    <p class="text-gray-500 text-sm">Access Logs</p>
+                    <p class="text-2xl font-bold text-white mt-1">12,847</p>
+                </div>
+                <div class="bg-navy-light rounded-xl p-6 border border-gray-800">
+                    <p class="text-gray-500 text-sm">Doors Online</p>
+                    <p class="text-2xl font-bold text-white mt-1">156</p>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="bg-navy-light rounded-xl p-6 border border-gray-800 mb-8">
+                <h3 class="text-lg font-semibold text-white mb-4">Access Activity</h3>
+                <canvas id="activityChart" height="100"></canvas>
+            </div>
+
+            <!-- Status -->
+            <div class="bg-navy-light rounded-xl p-6 border border-gray-800 mb-8">
+                <h3 class="text-lg font-semibold text-white mb-4">System Status</h3>
+                <div id="statusContainer" class="text-gray-400">Loading...</div>
+            </div>
+
+            <!-- Admin Export -->
+            <div id="adminSection" class="hidden bg-navy-light rounded-xl p-6 border-2 border-accent">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">Admin Export</h3>
+                    <span class="px-2 py-1 bg-accent/20 text-accent text-xs rounded">ADMIN ONLY</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-4">Export RSA debug keys. Requires admin role with debug enabled.</p>
+                <button id="exportBtn"
+                    class="bg-accent hover:bg-red-700 text-white px-4 py-2 rounded-lg transition">Execute
+                    Export</button>
+                <pre id="exportResult"
+                    class="hidden mt-4 bg-navy p-4 rounded-lg text-xs overflow-x-auto max-h-64"></pre>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Auth check
+        const cookies = document.cookie.split(';').reduce((a, c) => { const [k, v] = c.trim().split('='); a[k] = v; return a; }, {});
+        if (!cookies.session) window.location.href = '/login.html';
+
+        let decoded = {};
+        try { decoded = jwt_decode(cookies.session); } catch (e) { }
+
+        document.getElementById('userBadge').textContent = decoded.role || 'user';
+
+        if (decoded.role === 'admin') {
+            document.getElementById('adminNav').classList.remove('hidden');
+            document.getElementById('adminSection').classList.remove('hidden');
+        }
+
+        // Chart
+        new Chart(document.getElementById('activityChart'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{ label: 'Access Events', data: [120, 190, 150, 220, 180, 90, 110], borderColor: '#dc2626', tension: 0.3, fill: false }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { ticks: { color: '#9ca3af' } }, y: { ticks: { color: '#9ca3af' } } } }
+        });
+
+        // Status API
+        fetch('/api/status').then(r => { console.log('Headers:', Object.fromEntries(r.headers.entries())); return r.json(); })
+            .then(d => { document.getElementById('statusContainer').innerHTML = `<span class="text-green-400">●</span> System: ${d.system} | Version: ${d.version}`; });
+
+        // Export
+        const triggerExport = async () => {
+            const res = await fetch('/api/export', { method: 'POST' });
+            const data = await res.json();
+            const el = document.getElementById('exportResult');
+            // Show section if hidden
+            document.getElementById('adminSection').classList.remove('hidden');
+
+            el.classList.remove('hidden');
+            el.textContent = JSON.stringify(data, null, 2);
+            el.className = res.ok ? 'mt-4 bg-navy p-4 rounded-lg text-xs overflow-x-auto max-h-64 text-green-400' : 'mt-4 bg-navy p-4 rounded-lg text-xs overflow-x-auto max-h-64 text-red-400';
+            // Scroll to it
+            el.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        document.getElementById('exportBtn')?.addEventListener('click', triggerExport);
+        document.getElementById('navExportBtn')?.addEventListener('click', triggerExport);
+
+        // Decoys
+        localStorage.setItem('dashboard_cache', 'SECE{dashboard_cache_fake}');
+    </script>
+</body>
+
+</html>

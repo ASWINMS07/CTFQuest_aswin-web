@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>System Settings - Secure Rite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background 0.3s, color 0.3s;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0a0f1c] text-white" id="bodyRoot">
+    <div class="max-w-xl mx-auto p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Settings</h1>
+            <a href="/dashboard.html" class="text-gray-400 hover:text-white">← Back to Dashboard</a>
+        </div>
+
+        <div class="bg-[#111827] rounded-lg border border-gray-800 p-6 space-y-6" id="settingsPanel">
+            <!-- Theme Toggle -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-semibold text-lg">Interface Theme</h3>
+                    <p class="text-sm text-gray-400">Toggle between Dark and Light mode.</p>
+                </div>
+                <button onclick="toggleTheme()"
+                    class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm transition">
+                    Switch Mode
+                </button>
+            </div>
+
+            <hr class="border-gray-800">
+
+            <!-- Security Level -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-semibold text-lg">Security Level</h3>
+                    <p class="text-sm text-gray-400">Current restriction level.</p>
+                </div>
+                <span class="px-3 py-1 bg-red-900/50 text-red-400 rounded text-xs font-mono">HIGH</span>
+            </div>
+
+            <hr class="border-gray-800">
+
+            <!-- About -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-semibold text-lg">System Version</h3>
+                    <p class="text-sm text-gray-400">v2.4.1 (Build 8990)</p>
+                </div>
+                <div class="text-xs text-gray-500">Up to date</div>
+            </div>
+
+            <!-- SECE{settings_decoy_flag} -->
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.getElementById('bodyRoot');
+            const panel = document.getElementById('settingsPanel');
+            const isDark = body.classList.contains('bg-[#0a0f1c]');
+
+            if (isDark) {
+                // Switch to Light
+                body.classList.remove('bg-[#0a0f1c]', 'text-white');
+                body.classList.add('bg-gray-100', 'text-gray-900');
+
+                panel.classList.remove('bg-[#111827]', 'border-gray-800');
+                panel.classList.add('bg-white', 'border-gray-200', 'shadow-lg');
+
+                localStorage.setItem('theme', 'light');
+            } else {
+                // Switch to Dark
+                body.classList.add('bg-[#0a0f1c]', 'text-white');
+                body.classList.remove('bg-gray-100', 'text-gray-900');
+
+                panel.classList.add('bg-[#111827]', 'border-gray-800');
+                panel.classList.remove('bg-white', 'border-gray-200', 'shadow-lg');
+
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Init
+        if (localStorage.getItem('theme') === 'light') toggleTheme();
+    </script>
+</body>
+
+</html>

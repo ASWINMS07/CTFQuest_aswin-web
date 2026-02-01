@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /beta-preview
+Disallow: /admin-export
+Disallow: /api/admin
+
+# Secure Rite Solutions - Enterprise Access Security
+# For support: 1-800-448-8979
+# Version: 3.2.1-enterprise
