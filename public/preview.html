@@ -298,12 +298,18 @@
 
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
+
+                    // Show preview in terminal
+                    log(`<div style="margin: 10px 0; border: 1px solid var(--accent-green); padding: 5px; background: rgba(46, 160, 67, 0.1);">
+                            <img src="${url}" style="max-width: 100%; display: block; margin: 0 auto;">
+                         </div>`);
+
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = `evidence_${currentChannel}_${Date.now()}.jpg`;
                     document.body.appendChild(a);
                     a.click();
-                    window.URL.revokeObjectURL(url);
+                    // window.URL.revokeObjectURL(url); // Don't revoke yet so the image stays visible
 
                     log("> DOWNLOAD COMPLETE.");
                     log("> HINT: INSPECT FILE METADATA (EXIF).");
